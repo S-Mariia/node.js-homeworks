@@ -2,21 +2,21 @@ const fs = require("fs/promises");
 const path = require("path");
 const { nanoid } = require("nanoid");
 
-const contactsPath = path.join(__dirname, "contacts.json");
+const contactsPath = path.resolve("models", "contacts.json");
 
-const listContacts = async () => {
+const getContactsService = async () => {
   const allContacts = await fs.readFile(contactsPath, "utf-8");
   return JSON.parse(allContacts);
 };
 
-const getContactById = async (contactId) => {
-  const allContacts = await listContacts();
+const getContactByIdService = async (contactId) => {
+  const allContacts = await getContactsService();
   const contact = allContacts.find(({ id }) => id === contactId);
   return contact || null;
 };
 
-const removeContact = async (contactId) => {
-  const allContacts = await listContacts();
+const removeContactService = async (contactId) => {
+  const allContacts = await getContactsService();
   const idx = allContacts.findIndex(({ id }) => id === contactId);
   if (idx === -1) {
     return null;
@@ -27,8 +27,8 @@ const removeContact = async (contactId) => {
   return removedContact;
 };
 
-const addContact = async (body) => {
-  const allContacts = await listContacts();
+const addContactService = async (body) => {
+  const allContacts = await getContactsService();
   const { name, email, phone } = body;
   const newContact = {
     id: nanoid(),
@@ -41,8 +41,8 @@ const addContact = async (body) => {
   return newContact;
 };
 
-const updateContact = async (contactId, body) => {
-  const allContacts = await listContacts();
+const updateContactService = async (contactId, body) => {
+  const allContacts = await getContactsService();
   const idx = allContacts.findIndex(({ id }) => id === contactId);
   if (idx === -1) {
     return null;
@@ -53,9 +53,9 @@ const updateContact = async (contactId, body) => {
 };
 
 module.exports = {
-  listContacts,
-  getContactById,
-  removeContact,
-  addContact,
-  updateContact,
+  getContactsService,
+  getContactByIdService,
+  removeContactService,
+  addContactService,
+  updateContactService,
 };
