@@ -1,84 +1,54 @@
 const HttpError = require("../helpers/HttpErrors");
 
 const contactsService = require("../services/contactsService");
-
-const addContactSchema = require("../utils/validation/contactValidationSchemas");
+const ctrlWrapper = require("../utils/decorators/ctrlWrapper");
 
 const getContacts = async (req, res, next) => {
-  try {
-    const allContacts = await contactsService.getContactsService();
-    res.json(allContacts);
-  } catch (error) {
-    next(error);
-  }
+  const allContacts = await contactsService.getContactsService();
+  res.json(allContacts);
 };
 
 const getContact = async (req, res, next) => {
-  try {
-    const id = req.params.contactId;
-    const result = await contactsService.getContactByIdService(id);
-    if (!result) {
-      throw HttpError(404, "Not found");
-    }
-    res.json(result);
-  } catch (error) {
-    next(error);
+  const id = req.params.contactId;
+  const result = await contactsService.getContactByIdService(id);
+  if (!result) {
+    throw HttpError(404, "Not found");
   }
+  res.json(result);
 };
 
 const addContact = async (req, res, next) => {
-  try {
-    const { error, value } = addContactSchema.validate(req.body);
-    if (error) {
-      throw HttpError(400, error.message);
-    }
-    const result = await contactsService.addContactService(value);
-    res.status(201).json(result);
-  } catch (error) {
-    next(error);
-  }
+  const result = await contactsService.addContactService(req.body);
+  res.status(201).json(result);
 };
 
 const deleteContact = async (req, res, next) => {
-  try {
-    const id = req.params.contactId;
-    const result = await contactsService.removeContactService(id);
-    if (!result) {
-      throw HttpError(404, "Not found");
-    }
-    res.json({ message: "Contact deleted" });
-  } catch (error) {
-    next(error);
+  const id = req.params.contactId;
+  const result = await contactsService.removeContactService(id);
+  if (!result) {
+    throw HttpError(404, "Not found");
   }
+  res.json({ message: "Contact deleted" });
 };
 
 const updateContact = async (req, res, next) => {
-  try {
-    const id = req.params.contactId;
-    const isBodyEmpty = Object.keys(req.body).length === 0;
-    if (isBodyEmpty) {
-      throw HttpError(400, "Missing fields");
-    }
-
-    const { error, value } = addContactSchema.validate(req.body);
-    if (error) {
-      throw HttpError(400, error.message);
-    }
-
-    const result = await contactsService.updateContactService(id, value);
-    if (!result) {
-      throw HttpError(404, "Not found");
-    }
-    res.json(result);
-  } catch (error) {
-    next(error);
+  const id = req.params.contactId;
+  const isBodyEmpty = Object.keys(req.body).length === 0;
+  if (isBodyEmpty) {
+    throw HttpError(400, "Missing fields");
   }
+
+  const result = await contactsService.updateContactService(id, req.body);
+  if (!result) {
+    throw HttpError(404, "Not found");
+  }
+  res.json(result);
 };
 
 module.exports = {
-  getContacts,
-  getContact,
-  addContact,
-  deleteContact,
-  updateContact,
+  getContacts: ctrlWrapper(getContacts),
+  getContact: ctrlWrapper(getContact),
+  addContact: ctrlWrapper(addContact),
+  deleteContact: ctrlWrapper(deleteContact),
+  updateContact: ctrlWrapper(updateContact),
 };
