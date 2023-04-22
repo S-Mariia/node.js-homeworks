@@ -1,10 +1,28 @@
 const HttpError = require("../helpers/HttpErrors");
 
-const Contact = require("../models/contact");
+const { Contact } = require("../models/contact");
 const ctrlWrapper = require("../utils/decorators/ctrlWrapper");
 
 const getContacts = async (req, res, next) => {
-  const allContacts = await Contact.find();
+  const { page, limit, favorite } = req.query;
+  const skip = limit * (page - 1);
+
+  if (favorite !== undefined) {
+    const receivedContacts = await Contact.find(
+      { owner: req.user._id, favorite },
+      null,
+      {
+        skip,
+        limit,
+      }
+    );
+    res.json(receivedContacts);
+    return;
+  }
+  const allContacts = await Contact.find({ owner: req.user._id }, null, {
+    skip,
+    limit,
+  });
   res.json(allContacts);
 };
 
@@ -18,7 +36,7 @@ const getContact = async (req, res, next) => {
 };
 
 const addContact = async (req, res, next) => {
-  const result = await Contact.create(req.body);
+  const result = await Contact.create({ ...req.body, owner: req.user._id });
   res.status(201).json(result);
 };
 
@@ -33,9 +51,13 @@ const deleteContact = async (req, res, next) => {
 
 const updateContact = async (req, res, next) => {
   const id = req.params.contactId;
-  const result = await Contact.findOneAndReplace({ _id: id }, req.body, {
-    new: true,
-  });
+  const result = await Contact.findOneAndReplace(
+    { _id: id },
+    { ...req.body, owner: req.user._id },
+    {
+      new: true,
+    }
+  );
   if (!result) {
     throw HttpError(404, "Not found");
   }
