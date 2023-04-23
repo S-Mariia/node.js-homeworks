@@ -14,7 +14,7 @@ const HttpError = require("../helpers/HttpErrors");
 
 const register = async (req, res) => {
   const user = await User.findOne({ email: req.body.email });
-  if (user !== null) {
+  if (user) {
     throw HttpError(409, "This email is already in use");
   }
 
@@ -28,7 +28,7 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   const user = await User.findOne({ email: req.body.email });
-  if (user === null) {
+  if (!user) {
     throw HttpError(401, "Email or password is wrong");
   }
 
@@ -54,7 +54,6 @@ const login = async (req, res) => {
 
 const logout = async (req, res) => {
   const { id } = req.user;
-  console.log(id);
   await User.findByIdAndUpdate(id, { token: "" });
   res.status(204).json({ message: "Logged out" });
 };
