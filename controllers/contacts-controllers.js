@@ -7,7 +7,7 @@ const getContacts = async (req, res, next) => {
   const { page, limit, favorite } = req.query;
   const skip = limit * (page - 1);
 
-  if (favorite !== undefined) {
+  if (favorite) {
     const receivedContacts = await Contact.find(
       { owner: req.user._id, favorite },
       null,
@@ -15,14 +15,14 @@ const getContacts = async (req, res, next) => {
         skip,
         limit,
       }
-    );
+    ).populate("owner", ["email", "subscription"]);
     res.json(receivedContacts);
     return;
   }
   const allContacts = await Contact.find({ owner: req.user._id }, null, {
     skip,
     limit,
-  });
+  }).populate("owner", ["email", "subscription"]);
   res.json(allContacts);
 };
 

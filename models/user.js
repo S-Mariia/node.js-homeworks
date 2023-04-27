@@ -4,6 +4,7 @@ const Joi = require("joi");
 const handleMongooseError = require("../helpers/handleMongooseError");
 
 const emailRegExp = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+const subscriptionOptions = ["starter", "pro", "business"];
 
 const userSchema = new Schema(
   {
@@ -20,8 +21,12 @@ const userSchema = new Schema(
     },
     subscription: {
       type: String,
-      enum: ["starter", "pro", "business"],
+      enum: subscriptionOptions,
       default: "starter",
+    },
+    avatarURL: {
+      type: String,
+      required: true,
     },
     token: String,
   },
@@ -38,7 +43,7 @@ const registerSchema = Joi.object({
     .min(6)
     .required()
     .messages({ "string.min": "The password should have at least 6 symbols" }),
-  subscription: Joi.string().valid("starter", "pro", "business"),
+  subscription: Joi.string().valid(...subscriptionOptions),
 });
 
 const loginSchema = Joi.object({
@@ -50,7 +55,9 @@ const loginSchema = Joi.object({
 });
 
 const updateSubscriptionSchema = Joi.object({
-  subscription: Joi.string().required().valid("starter", "pro", "business"),
+  subscription: Joi.string()
+    .required()
+    .valid(...subscriptionOptions),
 });
 
 const schemas = {
